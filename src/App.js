@@ -18,6 +18,9 @@ class App extends React.Component {
       this.handleChange = this.handleChange.bind(this)
       this.handleSubmit = this.handleSubmit.bind(this)
       this.getCookie = this.getCookie.bind(this)
+      this.startEdit = this.startEdit.bind(this)
+      this.deleteItem = this.deleteItem.bind(this)
+
   };
 
   getCookie(name) {
@@ -74,6 +77,14 @@ class App extends React.Component {
     var csrftoken = this.getCookie('csrftoken')
 
     var url = 'http://127.0.0.1:8000/api/task-create/'
+
+    if(this.state.editing == true) { 
+      url = `http://127.0.0.1:8000/api/task-update/${this.state.activeItem.id}/`
+      this.setState({
+        editing:false
+      })
+    }
+
     fetch(url, {
       method:'POST',
       headers:{
@@ -95,10 +106,32 @@ class App extends React.Component {
     })
   }
 
+  startEdit(task) { 
+    this.setState({
+      activeItem:task,
+      editing:true
+    })
+  }
+
+  deleteItem(task) { 
+    var csrftoken = this.getCookie('csrftoken')
+
+    fetch(`http://127.0.0.1:8000/api/task-delete/${task.id}/`, {
+      method:'DELETE',
+      headers:{
+        'Content-type':'application/json',
+        'X-CSRFToken':csrftoken,
+      },
+    }).then((response) => {
+      this.fetchTasks()
+    })
+  }
+
 
   render() { 
     
     var tasks = this.state.todoList
+    var self = this
 
 
     return(
@@ -131,11 +164,11 @@ class App extends React.Component {
                       </div>
 
                       <div style={{flex: 1}}>
-                        <button className="btn btn-sm btn-outline-info">Edit</button>
+                        <button onClick={() => self.startEdit(task) } className="btn btn-sm btn-outline-info">Edit</button>
                       </div>
 
                       <div style={{flex: 1}}>
-                        <button className="btn btn-sm btn-outline-dark delete">-</button>
+                        <button onClick={() => self.deleteItem(task)} className="btn btn-sm btn-outline-dark delete">-</button>
                       </div>
 
                     </div>
